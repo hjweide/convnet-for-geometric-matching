@@ -93,8 +93,6 @@ def center_crop(img, length):
             img, top, top, left, left, borderType=cv2.BORDER_REFLECT_101
         )
 
-    cv2.imwrite('pad.png', img)
-
     crop_y = int(np.floor((img.shape[0] - length) / 2.))
     crop_x = int(np.floor((img.shape[1] - length) / 2.))
     crop = img[crop_y:crop_y + length, crop_x:crop_x + length]
