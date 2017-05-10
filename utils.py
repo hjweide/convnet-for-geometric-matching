@@ -21,6 +21,9 @@ def plot_samples(Ia, Ib, M, mean, prefix=''):
         cv2.imwrite('%s_%d.png' % (prefix, i), out)
 
 
+# This is slightly different from https://arxiv.org/abs/1703.05593,
+# where the dataset is generated in advance and kept fixed.  Here,
+# we generate a new transformation every time an image is sampled.
 def prepare_synth_batch(fpaths, mean, params):
     Xa = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
     Xb = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
