@@ -1,4 +1,3 @@
-import cv2
 import cPickle as pickle
 import numpy as np
 import theano_funcs
@@ -10,24 +9,11 @@ from os.path import join
 from tqdm import tqdm
 
 
-def plot_samples(Ia, Ib, M, mean, prefix=''):
-    assert Ia.shape == Ib.shape, 'shapes must match'
-
-    for i, _ in enumerate(Ia):
-        crop = (Ia[i].transpose(1, 2, 0) + mean).astype(np.uint8)
-        warp = (Ib[i].transpose(1, 2, 0) + mean).astype(np.uint8)
-
-        theta = M[i].reshape((2, 3))
-        trns = cv2.warpAffine(warp, theta, crop.shape[0:2],
-                              flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP)
-        out = np.hstack((crop, warp, trns))
-        cv2.imwrite('%s_%d.png' % (prefix, i), out)
-
-
 def train_geometric_matching():
     print('building model')
     layers = vgg16.build_model()
 
+    # file to store the learned weights
     weightsfile = join('weights', 'weights.pickle')
 
     # initialize the feature extraction layers
@@ -46,9 +32,10 @@ def train_geometric_matching():
 
     max_epochs = 5000
     batch_size = 16
-    sample_every = 25
+    sample_every = 25  # visualizes network output every n epochs
     sample_dir = join('data', 'samples')
-    train_fpaths, valid_fpaths = utils.train_val_split()
+    voc_fpath = '/media/hdd/hendrik/datasets/pascal-2011'
+    train_fpaths, valid_fpaths = utils.train_val_split(voc_fpath)
 
     print('compiling theano functions for training')
     train_func = theano_funcs.create_train_func(layers)
@@ -67,8 +54,8 @@ def train_geometric_matching():
                 M, train_loss = train_func(X_crop_train, X_warp_train, M_train)
                 train_losses.append(train_loss)
                 if epoch % sample_every == 0:
-                    plot_samples(X_crop_train, X_warp_train, M, mean,
-                                 prefix=join(sample_dir, 'train_%d' % i))
+                    utils.plot_samples(X_crop_train, X_warp_train, M, mean,
+                                       prefix=join(sample_dir, 'train_%d' % i))
             print(' train loss = %.6f' % (np.mean(train_losses)))
 
             valid_losses = []
@@ -80,8 +67,8 @@ def train_geometric_matching():
                 M, valid_loss = valid_func(X_crop_valid, X_warp_valid, M_valid)
                 valid_losses.append(valid_loss)
                 if epoch % sample_every == 0:
-                    plot_samples(X_crop_valid, X_warp_valid, M, mean,
-                                 prefix=join(sample_dir, 'valid_%d' % i))
+                    utils.plot_samples(X_crop_valid, X_warp_valid, M, mean,
+                                       prefix=join(sample_dir, 'valid_%d' % i))
             print(' valid loss = %.6f' % (np.mean(valid_losses)))
     except KeyboardInterrupt:
         print('caught ctrl-c, stopped training')

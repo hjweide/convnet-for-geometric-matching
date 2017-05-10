@@ -5,6 +5,22 @@ from daug.utils import generate_transformations
 from os.path import join
 
 
+# plot the original image, the warped image, and the predicted transform
+# applied to the warp image to "invert" the transformation
+def plot_samples(Ia, Ib, M, mean, prefix=''):
+    assert Ia.shape == Ib.shape, 'shapes must match'
+
+    for i, _ in enumerate(Ia):
+        crop = (Ia[i].transpose(1, 2, 0) + mean).astype(np.uint8)
+        warp = (Ib[i].transpose(1, 2, 0) + mean).astype(np.uint8)
+
+        theta = M[i].reshape((2, 3))
+        trns = cv2.warpAffine(warp, theta, crop.shape[0:2],
+                              flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP)
+        out = np.hstack((crop, warp, trns))
+        cv2.imwrite('%s_%d.png' % (prefix, i), out)
+
+
 def prepare_batch(fpaths, mean):
     Xa = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
     Xb = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
@@ -31,9 +47,8 @@ def get_batch_idx(N, batch_size):
         yield i, idx
 
 
-def train_val_split():
-    root = ('/media/hdd/hendrik/datasets/pascal-2011/TrainVal/VOCdevkit/'
-            'VOC2011/')
+def train_val_split(voc_fpath):
+    root = join(voc_fpath, 'TrainVal', 'VOCdevkit', 'VOC2011')
     train_fpath = join(root, 'ImageSets', 'Main', 'train.txt')
     with open(train_fpath, 'rb') as f:
         train_fnames = f.readlines()
@@ -48,25 +63,6 @@ def train_val_split():
     ]
 
     return train_fpaths, valid_fpaths
-
-
-def main():
-    root = ('/media/hdd/hendrik/datasets/pascal-2011/TrainVal/VOCdevkit/'
-            'VOC2011/JPEGImages')
-
-    #fpath = join(root, '2009_004625.jpg')
-    fpath = join(root, '2008_000405.jpg')
-    img = cv2.imread(fpath)
-
-    #cv2.imwrite('img.png', img)
-
-    crop, warp, M = crop_transform(img)
-    out = cv2.warpAffine(
-        warp, M[:2], (227, 227), flags=cv2.INTER_LINEAR | cv2.WARP_INVERSE_MAP
-    )
-    #cv2.imwrite('img.png', img)
-    cv2.imwrite('out.png', out)
-    cv2.imwrite('pad.png', np.hstack((crop, warp)))
 
 
 def crop_transform(img):
