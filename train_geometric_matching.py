@@ -52,8 +52,8 @@ def train_geometric_matching():
             num_train_idx = (len(train_fpaths) + batch_size - 1) / batch_size
             train_iter = utils.get_batch_idx(len(train_fpaths), batch_size)
             for i, idx in tqdm(train_iter, total=num_train_idx, leave=False):
-                X_crop_train, X_warp_train, M_train = utils.prepare_batch(
-                    train_fpaths[idx], mean)
+                X_crop_train, X_warp_train, M_train =\
+                    utils.prepare_synth_batch(train_fpaths[idx], mean)
                 M, train_loss = train_func(X_crop_train, X_warp_train, M_train)
                 train_losses.append(train_loss)
                 if epoch % sample_every == 0:
@@ -65,8 +65,8 @@ def train_geometric_matching():
             num_valid_idx = (len(valid_fpaths) + batch_size - 1) / batch_size
             valid_iter = utils.get_batch_idx(len(valid_fpaths), batch_size)
             for i, idx in tqdm(valid_iter, total=num_valid_idx, leave=False):
-                X_crop_valid, X_warp_valid, M_valid = utils.prepare_batch(
-                    valid_fpaths[idx], mean)
+                X_crop_valid, X_warp_valid, M_valid =\
+                    utils.prepare_synth_batch(valid_fpaths[idx], mean)
                 M, valid_loss = valid_func(X_crop_valid, X_warp_valid, M_valid)
                 valid_losses.append(valid_loss)
                 if epoch % sample_every == 0:
