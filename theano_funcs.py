@@ -79,3 +79,25 @@ def create_valid_func(layers):
     )
 
     return corr_func
+
+
+def create_infer_func(layers):
+    Xa, Xb = T.tensor4('Xa'), T.tensor4('Xb')
+    Xa_batch, Xb_batch = T.tensor4('Xa_batch'), T.tensor4('Xb_batch')
+
+    Tp = get_output(
+        layers['trans'],
+        inputs={
+            layers['inputa']: Xa, layers['inputb']: Xb,
+        }, deterministic=True,
+    )
+
+    infer_func = theano.function(
+        inputs=[theano.In(Xa_batch), theano.In(Xb_batch)],
+        outputs=Tp,
+        givens={
+            Xa: Xa_batch, Xb: Xb_batch,  # Ia, Ib
+        }
+    )
+
+    return infer_func
