@@ -21,14 +21,14 @@ def plot_samples(Ia, Ib, M, mean, prefix=''):
         cv2.imwrite('%s_%d.png' % (prefix, i), out)
 
 
-def prepare_synth_batch(fpaths, mean):
+def prepare_synth_batch(fpaths, mean, params):
     Xa = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
     Xb = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
     M  = np.empty((len(fpaths), 6), dtype=np.float32)
 
     for i, fpath in enumerate(fpaths):
         img = cv2.imread(fpath)
-        crop, warp, trans = crop_transform(img)
+        crop, warp, trans = crop_transform(img, params)
 
         Xa[i] = (crop - mean).astype(np.float32).transpose(2, 0, 1)
         Xb[i] = (warp - mean).astype(np.float32).transpose(2, 0, 1)
@@ -99,20 +99,13 @@ def center_crop(img, length):
     return crop
 
 
-def crop_transform(img):
-    trans_params = {
-        'rotation': (0, 0),
-        'offset':   (0, 0),
-        'flip':     (False, False),
-        'shear':    (0., 0.),
-        'stretch':  (1. / 2, 2),
-    }
+def crop_transform(img, params):
 
     # take the center crop of the original image as I_{A}
     crop = center_crop(img, 227)
 
     M, = generate_transformations(
-        1, (img.shape[0], img.shape[1]), **trans_params
+        1, (img.shape[0], img.shape[1]), **params
     )
 
     # apply T_{\theta_{GT}} to I_{A} to get I_{B}

@@ -10,6 +10,14 @@ from tqdm import tqdm
 
 
 def train_geometric_matching():
+    trans_params = {
+        'rotation': (0, 0),
+        'offset':   (0, 0),
+        'flip':     (False, False),
+        'shear':    (0., 0.),
+        'stretch':  (1. / 2, 2),
+    }
+
     print('building model')
     layers = vgg16.build_model((None, 3, 227, 227))
 
@@ -53,7 +61,8 @@ def train_geometric_matching():
             train_iter = utils.get_batch_idx(len(train_fpaths), batch_size)
             for i, idx in tqdm(train_iter, total=num_train_idx, leave=False):
                 X_crop_train, X_warp_train, M_train =\
-                    utils.prepare_synth_batch(train_fpaths[idx], mean)
+                    utils.prepare_synth_batch(train_fpaths[idx], mean,
+                                              trans_params)
                 M, train_loss = train_func(X_crop_train, X_warp_train, M_train)
                 train_losses.append(train_loss)
                 if epoch % sample_every == 0:
@@ -66,7 +75,8 @@ def train_geometric_matching():
             valid_iter = utils.get_batch_idx(len(valid_fpaths), batch_size)
             for i, idx in tqdm(valid_iter, total=num_valid_idx, leave=False):
                 X_crop_valid, X_warp_valid, M_valid =\
-                    utils.prepare_synth_batch(valid_fpaths[idx], mean)
+                    utils.prepare_synth_batch(valid_fpaths[idx], mean,
+                                              trans_params)
                 M, valid_loss = valid_func(X_crop_valid, X_warp_valid, M_valid)
                 valid_losses.append(valid_loss)
                 if epoch % sample_every == 0:
