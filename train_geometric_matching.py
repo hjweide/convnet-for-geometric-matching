@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 def train_geometric_matching():
     print('building model')
-    layers = vgg16.build_model()
+    layers = vgg16.build_model((None, 3, 227, 227))
 
     # file to store the learned weights
     weightsfile = join('weights', 'weights.pickle')
@@ -24,6 +24,7 @@ def train_geometric_matching():
     set_all_param_values(layers['pool4a'], data['param values'][0:20])
     set_all_param_values(layers['pool4b'], data['param values'][0:20])
 
+    # used to initialize from learned weights
     #with open(weightsfile, 'rb') as f:
     #    param_values = pickle.load(f)
     #set_all_param_values(layers['trans'], param_values)
@@ -34,6 +35,8 @@ def train_geometric_matching():
     batch_size = 16
     sample_every = 25  # visualizes network output every n epochs
     sample_dir = join('data', 'samples')
+
+    # set this to point to the root of Pascal VOC-2011
     voc_fpath = '/media/hdd/hendrik/datasets/pascal-2011'
     train_fpaths, valid_fpaths = utils.train_val_split(voc_fpath)
 

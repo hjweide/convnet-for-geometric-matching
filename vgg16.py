@@ -14,7 +14,6 @@ from lasagne.layers import InputLayer
 from lasagne.layers import DenseLayer
 from lasagne.layers import ExpressionLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
-#from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
 from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.layers import MergeLayer
 from lasagne.layers import NonlinearityLayer
@@ -48,10 +47,9 @@ class CorrelationLayer(MergeLayer):
         return C.reshape((-1, A.shape[1], A.shape[2]))
 
 
-def build_model():
+def build_model(input_shape):
     net = {}
-    #net['input'] = InputLayer((None, 3, 224, 224))
-    net['inputa'] = InputLayer((None, 3, 227, 227))
+    net['inputa'] = InputLayer(input_shape)
     net['conv1_1a'] = ConvLayer(
         net['inputa'], 64, 3, pad=1, flip_filters=False)
     net['conv1_2a'] = ConvLayer(
@@ -80,7 +78,7 @@ def build_model():
         net['pool4a'],
         lambda X: X / T.sqrt(T.sum(T.square(X), axis=1, keepdims=True)))
 
-    net['inputb'] = InputLayer((None, 3, 227, 227))
+    net['inputb'] = InputLayer(input_shape)
     net['conv1_1b'] = ConvLayer(
         net['inputb'], 64, 3, pad=1, flip_filters=False)
     net['conv1_2b'] = ConvLayer(
