@@ -21,7 +21,7 @@ def plot_samples(Ia, Ib, M, mean, prefix=''):
         cv2.imwrite('%s_%d.png' % (prefix, i), out)
 
 
-def prepare_batch(fpaths, mean):
+def prepare_synth_batch(fpaths, mean):
     Xa = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
     Xb = np.empty((len(fpaths), 3, 227, 227), dtype=np.float32)
     M  = np.empty((len(fpaths), 6), dtype=np.float32)
@@ -35,6 +35,23 @@ def prepare_batch(fpaths, mean):
         M[i]  = trans[:2].flatten()
 
     return Xa, Xb, M
+
+
+def prepare_batch(fpath_pairs, mean):
+    Xa = np.empty((len(fpath_pairs), 3, 227, 227), dtype=np.float32)
+    Xb = np.empty((len(fpath_pairs), 3, 227, 227), dtype=np.float32)
+
+    for i, (fpath1, fpath2) in enumerate(fpath_pairs):
+        im1 = cv2.imread(fpath1)
+        im2 = cv2.imread(fpath2)
+
+        im1 = center_crop(im1, 227)
+        im2 = center_crop(im2, 227)
+
+        Xa[i] = (im1 - mean).astype(np.float32).transpose(2, 0, 1)
+        Xb[i] = (im2 - mean).astype(np.float32).transpose(2, 0, 1)
+
+    return Xa, Xb
 
 
 def get_batch_idx(N, batch_size):
@@ -65,6 +82,23 @@ def train_val_split(voc_fpath):
     return train_fpaths, valid_fpaths
 
 
+def center_crop(img, length):
+    if img.shape[0] < length or img.shape[1] < length:
+        top = max(0, int(np.ceil((length - img.shape[0]) / 2.)))
+        left = max(0, int(np.ceil((length - img.shape[1]) / 2.)))
+        img = cv2.copyMakeBorder(
+            img, top, top, left, left, borderType=cv2.BORDER_REFLECT_101
+        )
+
+    cv2.imwrite('pad.png', img)
+
+    crop_y = int(np.floor((img.shape[0] - length) / 2.))
+    crop_x = int(np.floor((img.shape[1] - length) / 2.))
+    crop = img[crop_y:crop_y + length, crop_x:crop_x + length]
+
+    return crop
+
+
 def crop_transform(img):
     trans_params = {
         'rotation': (0, 0),
@@ -74,17 +108,8 @@ def crop_transform(img):
         'stretch':  (1. / 2, 2),
     }
 
-    if img.shape[0] < 227 or img.shape[1] < 227:
-        top = max(0, (227 - img.shape[0]) / 2)
-        left = max(0, (227 - img.shape[1]) / 2)
-        img = cv2.copyMakeBorder(
-            img, top, top, left, left, borderType=cv2.BORDER_REFLECT_101
-        )
-
     # take the center crop of the original image as I_{A}
-    crop_y = int(np.floor((img.shape[0] - 227) / 2.))
-    crop_x = int(np.floor((img.shape[1] - 227) / 2.))
-    crop = img[crop_y:crop_y + 227, crop_x:crop_x + 227]
+    crop = center_crop(img, 227)
 
     M, = generate_transformations(
         1, (img.shape[0], img.shape[1]), **trans_params
@@ -97,7 +122,3 @@ def crop_transform(img):
     )
 
     return crop, warp, M
-
-
-if __name__ == '__main__':
-    main()
