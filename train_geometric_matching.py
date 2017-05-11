@@ -29,8 +29,8 @@ def train_geometric_matching():
     print('initializing feature extraction layers from %s' % (pretrainfile))
     with open(pretrainfile, 'rb') as f:
         data = pickle.load(f)
+    # weights are tied, no need to initialize a and b
     set_all_param_values(layers['pool4a'], data['param values'][0:20])
-    set_all_param_values(layers['pool4b'], data['param values'][0:20])
 
     # used to initialize from learned weights
     #with open(weightsfile, 'rb') as f:

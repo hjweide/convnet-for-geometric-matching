@@ -80,28 +80,38 @@ def build_model(input_shape):
 
     net['inputb'] = InputLayer(input_shape)
     net['conv1_1b'] = ConvLayer(
-        net['inputb'], 64, 3, pad=1, flip_filters=False)
+        net['inputb'], 64, 3, pad=1, flip_filters=False,
+        W=net['conv1_1a'].W, b=net['conv1_1a'].b)
     net['conv1_2b'] = ConvLayer(
-        net['conv1_1b'], 64, 3, pad=1, flip_filters=False)
+        net['conv1_1b'], 64, 3, pad=1, flip_filters=False,
+        W=net['conv1_2a'].W, b=net['conv1_2a'].b)
     net['pool1b'] = PoolLayer(net['conv1_2b'], 2)
     net['conv2_1b'] = ConvLayer(
-        net['pool1b'], 128, 3, pad=1, flip_filters=False)
+        net['pool1b'], 128, 3, pad=1, flip_filters=False,
+        W=net['conv2_1a'].W, b=net['conv2_1a'].b)
     net['conv2_2b'] = ConvLayer(
-        net['conv2_1b'], 128, 3, pad=1, flip_filters=False)
+        net['conv2_1b'], 128, 3, pad=1, flip_filters=False,
+        W=net['conv2_2a'].W, b=net['conv2_2a'].b)
     net['pool2b'] = PoolLayer(net['conv2_2b'], 2)
     net['conv3_1b'] = ConvLayer(
-        net['pool2b'], 256, 3, pad=1, flip_filters=False)
+        net['pool2b'], 256, 3, pad=1, flip_filters=False,
+        W=net['conv3_1a'].W, b=net['conv3_1a'].b)
     net['conv3_2b'] = ConvLayer(
-        net['conv3_1b'], 256, 3, pad=1, flip_filters=False)
+        net['conv3_1b'], 256, 3, pad=1, flip_filters=False,
+        W=net['conv3_2a'].W, b=net['conv3_2a'].b)
     net['conv3_3b'] = ConvLayer(
-        net['conv3_2b'], 256, 3, pad=1, flip_filters=False)
+        net['conv3_2b'], 256, 3, pad=1, flip_filters=False,
+        W=net['conv3_3a'].W, b=net['conv3_3a'].b)
     net['pool3b'] = PoolLayer(net['conv3_3b'], 2)
     net['conv4_1b'] = ConvLayer(
-        net['pool3b'], 512, 3, pad=1, flip_filters=False)
+        net['pool3b'], 512, 3, pad=1, flip_filters=False,
+        W=net['conv4_1a'].W, b=net['conv4_1a'].b)
     net['conv4_2b'] = ConvLayer(
-        net['conv4_1b'], 512, 3, pad=1, flip_filters=False)
+        net['conv4_1b'], 512, 3, pad=1, flip_filters=False,
+        W=net['conv4_2a'].W, b=net['conv4_2a'].b)
     net['conv4_3b'] = ConvLayer(
-        net['conv4_2b'], 512, 3, pad=1, flip_filters=False)
+        net['conv4_2b'], 512, 3, pad=1, flip_filters=False,
+        W=net['conv4_3a'].W, b=net['conv4_3a'].b)
     net['pool4b'] = PoolLayer(net['conv4_3b'], 2)
     net['normb'] = ExpressionLayer(
         net['pool4b'],
@@ -156,4 +166,20 @@ def create_corr_func():
 
 if __name__ == '__main__':
     #create_corr_func()
-    build_model()
+    import cPickle as pickle
+    import numpy as np
+    from os.path import join
+    from lasagne.layers import get_output, set_all_param_values
+    X = np.random.random((1, 3, 227, 227)).astype(np.float32)
+    layers = build_model((None, 3, 227, 227))
+    pretrainfile = join('weights', 'vgg16.pkl')
+    with open(pretrainfile, 'rb') as f:
+        data = pickle.load(f)
+    set_all_param_values(layers['pool4a'], data['param values'][0:20])
+    Xa, Xb = get_output(
+        [layers['norma'], layers['normb']],
+        inputs={layers['inputa']: X, layers['inputb']: X},
+        deterministic=False
+    )
+
+    assert np.allclose(Xa.eval(), Xb.eval()), 'outputs must match'
