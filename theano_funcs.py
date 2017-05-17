@@ -62,12 +62,11 @@ def create_valid_func(layers):
     theta_gt = Tg.reshape((-1, 2, 3))
     theta_pr = Tp.reshape((-1, 2, 3))
 
-    num_batch = Xa.shape[0]
     # grids: ground-truth, predicted
-    Gg = T.dot(theta_gt, T.tile(_meshgrid(20, 20), num_batch))
-    Gp = T.dot(theta_pr,  T.tile(_meshgrid(20, 20), num_batch))
+    Gg = T.dot(theta_gt, _meshgrid(20, 20))
+    Gp = T.dot(theta_pr, _meshgrid(20, 20))
 
-    valid_loss = T.mean(T.sum(T.sqr(Gg - Gp), axis=1))
+    valid_loss = T.mean(T.sqr(Gg - Gp))
 
     corr_func = theano.function(
         inputs=[theano.In(Xa_batch), theano.In(Xb_batch), theano.In(Tg_batch)],
