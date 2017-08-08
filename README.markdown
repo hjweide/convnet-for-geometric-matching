@@ -4,6 +4,14 @@ Download the [Pascal VOC dataset](http://host.robots.ox.ac.uk/pascal/VOC/voc2011
 
 (Optional) Download the [Proposal Flow dataset](http://www.di.ens.fr/willow/research/proposalflow/dataset/PF-dataset.zip).
 
+Download the pre-trained weights for [VGG16](https://s3.amazonaws.com/lasagne/recipes/pretrained/imagenet/vgg16.pkl).
+
+(Optional) Download the [learned
+weights](https://drive.google.com/file/d/0B8qxCmGEZj4oejgwcERUSjBtbkk/view?usp=sharing)
+if you don't want to train your own model from scratch (**NOTE**: These weights
+won't reproduce the figures from the paper, because I haven't implemented the
+thin-plate-spline transform yet).
+
 Get the code necessary for generating random transformation matrices from [this repo](https://github.com/hjweide/daug).
 
 **This is a work-in-progress**.  Pull requests are welcome.  Contact me if you run into issues using the code.
