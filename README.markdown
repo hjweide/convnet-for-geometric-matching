@@ -7,7 +7,7 @@ Download the [Pascal VOC dataset](http://host.robots.ox.ac.uk/pascal/VOC/voc2011
 Download the pre-trained weights for [VGG16](https://s3.amazonaws.com/lasagne/recipes/pretrained/imagenet/vgg16.pkl).
 
 (Optional) Download the [learned
-weights](https://drive.google.com/file/d/0B8qxCmGEZj4oejgwcERUSjBtbkk/view?usp=sharing)
+weights](https://drive.google.com/file/d/0B8qxCmGEZj4obXFEN1paX3lBRmM/view?usp=sharing)
 if you don't want to train your own model from scratch (**NOTE**: These weights
 won't reproduce the figures from the paper, because I haven't implemented the
 thin-plate-spline transform yet).
